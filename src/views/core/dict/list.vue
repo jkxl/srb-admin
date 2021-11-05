@@ -72,6 +72,11 @@ export default {
     //上传失败回调
     fileUploadError(error) {
       this.$message.error('数据导入失败')
+    },
+
+    //Excel数据导出
+    exportData() {
+      window.location.href = this.BASE_API + '/admin/core/dict/export'
     }
   }
 }
