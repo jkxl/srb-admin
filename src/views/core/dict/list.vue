@@ -40,20 +40,42 @@
         </el-button>
       </div>
     </el-dialog>
+    <el-table :data="list" border row-key="id" lazy :load="getChildren">
+      <el-table-column label="名称" align="left" prop="name" />
+      <el-table-column label="编码" prop="dictCode" />
+      <el-table-column label="值" align="left" prop="value" />
+    </el-table>
   </div>
 </template>
 
 <script>
+import dictApi from '@/api/core/dict'
 export default {
   // 定义数据
   data() {
     return {
+      list: [],// 数据字典列表
       dialogVisible: false, //文件上传对话框是否显示
       BASE_API: process.env.VUE_APP_BASE_API //获取后端接口地址
     }
   },
-
+  created () {
+    this.fetchData();
+  },
   methods: {
+    //调用api层获取数据库中的数据
+    fetchData () {
+      dictApi.listByParentId(1).then(response => {
+        this.list = response.data.list;
+      });
+    },
+    //延迟加载子节点
+    getChildren(row, treeNode, resolve) {
+      dictApi.listByParentId(row.id).then(response => {
+        // 负责将子节点数据展示在展开的列表中
+        resolve(response.data.list);
+      });
+    },
     // 上传多于一个文件时
     fileUploadExceed() {
       this.$message.warning('只能选取一个文件')
@@ -62,8 +84,9 @@ export default {
     //上传成功回调
     fileUploadSuccess(response) {
       if (response.code === 0) {
-        this.$message.success('数据导入成功')
-        this.dialogVisible = false
+        this.$message.success('数据导入成功');
+        this.dialogVisible = false;
+        this.fetchData();
       } else {
         this.$message.error(response.message)
       }
